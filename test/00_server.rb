@@ -1,6 +1,6 @@
 require 'active_support/core_ext'
 require 'webrick'
-require 'rails_lite'
+require_relative '../lib/rails_lite'
 
 # http://www.ruby-doc.org/stdlib-2.0/libdoc/webrick/rdoc/WEBrick.html
 # http://www.ruby-doc.org/stdlib-2.0/libdoc/webrick/rdoc/WEBrick/HTTPRequest.html
@@ -11,10 +11,10 @@ trap('INT') { server.shutdown }
 
 class MyController < ControllerBase
   def go
-    render_content("hello world!", "text/html")
+    #render_content("hello world!", "text/html")
 
     # after you have template rendering, uncomment:
-#    render :show
+    render :show
 
     # after you have sessions going, uncomment:
 #    session["count"] ||= 0
