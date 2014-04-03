@@ -29,7 +29,7 @@ class Params
 
   class AttributeNotFoundError < ArgumentError; end;
 
-  #private
+  private
   # this should return deeply nested hash
   # argument format
   # user[address][street]=main&user[address][zip]=89436
@@ -55,13 +55,9 @@ class Params
           new_hash = Hashie::Mash.new {}
           keys.each_with_index do |key, i|
             new_keys = '.' + keys[0..i].join('.')
-            #"['"+keys.join("']['") + "']"
-                          #new_hash = Hashie::Mash.new {}
             self.class.class_eval <<-EVAL
-
               new_hash#{new_keys} = {}
               new_hash#{new_keys} = arr[1] if i == keys.length - 1
-
             EVAL
           end
           new_hash = new_hash.to_hash
