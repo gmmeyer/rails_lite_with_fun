@@ -10,17 +10,22 @@ class Route
 
   # checks if pattern matches path and method matches request method
   def matches?(req)
-    return false if req.path.nil? || http_method.nil? || req.request_method.nil?
-    return pattern.match(req.path) && http_method == req.request_method if req.request_method.class == Symbol
-    pattern.match(req.path) && http_method == req.request_method.downcase.to_sym
+    (http_method == req.request_method.downcase.to_sym) && !!(pattern =~ req.path)
   end
 
   # uses pattern to pull out route params
   # instantiates controller and calls controller action
   def run(req, res)
-    if matches?(req)
-      controller_class.new(req, res).invoke(action_name)
+    match_data = @pattern.match(req.path)
+
+    route_params = {}
+    match_data.names.each do |name|
+      route_params[name] = match_data[name]
     end
+
+    @controller_class
+      .new(req, res, route_params)
+      .invoke_action(action_name)
   end
 end
 
@@ -36,13 +41,14 @@ class Router
     @routes << Route.new(pattern, method, controller_class, action_name)
   end
 
-  # evaluate the proc in the context of the instance
+  # evaluates the proc in the context of the instance
   # for syntactic sugar :)
   def draw(&proc)
+    instance_eval(&proc)
   end
 
-  # make each of these methods that
-  # when called add route
+  # makes each of these methods that
+  # when called adds route
   [:get, :post, :put, :delete].each do |http_method|
     define_method(http_method) do |pattern, method, controller_class|
       add_route(pattern, method, controller_class, http_method)
@@ -51,18 +57,16 @@ class Router
 
   # should return the route that matches this request
   def match(req)
-    @routes.each do |route|
-      return route.matches?(req)
-    end
+    routes.find { |route| route.matches?(req) }
   end
 
   # either throw 404 or call run on a matched route
   def run(req, res)
     a_match = match(req)
-    if a_match
-      a_match.run(req,res)
+    if a_match.nil?
+      res.status = 404
     else
-      res.status = '404'
+      a_match.run(req,res)
     end
   end
 end

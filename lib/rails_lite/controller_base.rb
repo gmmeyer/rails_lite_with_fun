@@ -12,6 +12,8 @@ class ControllerBase
     @req = req
     @res = res
     @already_built_response = false
+
+    @params = Params.new(req, route_params)
   end
 
   # populates the response with content
@@ -21,8 +23,9 @@ class ControllerBase
     raise 'DOH' if already_rendered?
     @res.body = content
     @res.content_type = type
+    session.store_session(@res)
     @already_built_response = true
-    return
+    nil
   end
 
   # helper method to alias @already_rendered
@@ -33,15 +36,21 @@ class ControllerBase
   # sets the response status code and header
   def redirect_to(url)
     raise 'DOH' if already_rendered?
+
     @res.header['location'] = url
     @res.status = 302
+
     @already_built_response = true
+    nil
   end
 
   # uses ERB and binding to evaluate templates
   # passes the rendered html to render_content
   def render(template_name)
+    raise 'DOH' if already_rendered?
+
     file_name = "views/#{self.class.to_s.underscore}/#{template_name}.html.erb"
+
     erb_file = File.read(file_name)
     template = ERB.new(erb_file).result(binding)
     render_content(template, 'text/html')
@@ -55,5 +64,8 @@ class ControllerBase
   # used with the router to call action_name (:index, :show, :create...)
   def invoke_action(name)
     self.send(name)
+    render(name) unless already_rendered?
+
+    nil
   end
 end

@@ -1,13 +1,18 @@
 require 'uri'
-require "hashie"
 
 class Params
-  # uses initialize to merge params from
-  # 1. query string
-  # 2. post body
-  # 3. route params
-  def initialize(req, route_params = {})
-    parse_www_encoded_form(req)
+  def initialize(req, route_params={})
+    @params = {}
+
+    @params.merge!(route_params)
+    if req.body
+      @params.merge!(parse_www_encoded_form(req.body))
+    end
+    if req.query_string
+      @params.merge!(parse_www_encoded_form(req.query_string))
+    end
+
+    @permitted = []
   end
 
   def [](key)
@@ -15,66 +20,47 @@ class Params
   end
 
   def permit(*keys)
+    @permitted.push *keys
   end
 
   def require(key)
+    raise AttributeNotFoundError unless @params.has_key?(key)
+    @params[key]
   end
 
   def permitted?(key)
+    @permitted.include?(key)
   end
 
   def to_s
+    @params.to_json.to_s
   end
 
   class AttributeNotFoundError < ArgumentError; end;
 
   private
-  # this returns deeply nested hash
-  # argument format
-  # user[address][street]=main&user[address][zip]=89436
-  # returns
-  # { "user" => { "address" => { "street" => "main", "zip" => "89436" } } }
   def parse_www_encoded_form(www_encoded_form)
-    @params = {}
-    body_params = {}
-    query_params = {}
-    decoded_string = []
-    unless www_encoded_form.nil?
+    params = {}
 
-      if !www_encoded_form.query_string.nil? && !www_encoded_form.query_string.empty?
-        decoded_string += URI.decode_www_form(www_encoded_form.query_string)
-      elsif !www_encoded_form.body.nil? && !www_encoded_form.body.empty?
-        decoded_string += URI.decode_www_form(www_encoded_form.body)
-      end
+    key_values = URI.decode_www_form(www_encoded_form)
+    key_values.each do |full_key, value|
+      scope = params
 
-      decoded_string.each do |arr|
-        keys = parse_key( arr[0] )
-        new_hash = {}
-        if keys.length > 1
-          new_hash = Hashie::Mash.new {}
-          keys.each_with_index do |key, i|
-            new_keys = '.' + keys[0..i].join('.')
-            self.class.class_eval <<-EVAL
-              new_hash#{new_keys} = {}
-              new_hash#{new_keys} = arr[1] if i == keys.length - 1
-            EVAL
-          end
-          new_hash = new_hash.to_hash
+      key_seq = parse_key(full_key)
+      key_seq.each_with_index do |key, i|
+        if (i + 1) == key_seq.count
+          scope[key] = value
         else
-          new_hash[arr[0]] = arr[1]
+          scope[key] ||= {}
+          scope = scope[key]
         end
-        @params.merge!(new_hash)
       end
-
     end
 
-    @params
+    params
   end
 
-  # this returns an array
-  # user[address][street] returns ['user', 'address', 'street']
   def parse_key(key)
-    key.split(/\]\[|\[|\]/)
+    key.split(/\[|\]\[|\]/)
   end
-
 end
