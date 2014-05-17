@@ -1,19 +1,12 @@
-# Using the specs
-Some specs have been written to guide you towards the lite :) There are rspec
-specs in the `spec` directory and ruby code for you to test with in the `test`
-directory.
+# Rails Lite
 
-The specs were written with _you_ in mind ;) Run them in this order they should
-generally follow the progression of the project.
+Rails is an amazing piece of software. It does so much for you, and I wanted to understand the core of the functionality that it offers. So, I decided to build a clone of it (to go with my [active record clone](https://github.com/gmmeyer/active_record_with_fun)).
 
-## Suggested Order
-0.  `rake spec spec/controller_base_spec.rb`
-0.  `rake spec spec/session_spec.rb`
-0.  `rake spec spec/params_spec.rb`
-0.  `rake spec spec/router_spec.rb`
-0.  `rake spec spec/integration_spec.rb`
+Stripping Rails down to the base leaves us with a few things: 
+* The WEBRICK server
+* A router
+* The controllers
+* The Parameters Hash
+* The session cookie
 
-Run `rake` to run all the spec files.
-
-If you're feeling extra fancy you can run [guard](https://github.com/guard/guard)! 
-just type `guard`
+These are the very barebones pieces that will allow you to build a website on top of them. That being said, I do not recommend that you utilize this to build a website, it has never been tested in a real world situation and would probably break pretty quickly (in addition to being extremely insecure in it's serving of data). But, the knowledge that I gained from building rails has allowed me to use rails far more efficiently than I would have been able to otherwise.
