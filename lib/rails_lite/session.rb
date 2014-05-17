@@ -2,8 +2,8 @@ require 'json'
 require 'webrick'
 
 class Session
-  # find the cookie for this app
-  # deserialize the cookie into a hash
+  # finds the cookie for this app
+  # deserializes the cookie into a hash
   def initialize(req)
     @cookies = {}
     req.cookies.each do |cookie|
@@ -25,8 +25,8 @@ class Session
     @cookies[key] = val
   end
 
-  # serialize the hash into json and save in a cookie
-  # add to the responses cookies
+  # serializes the hash into json and save in a cookie
+  # adds to the responses cookies
   def store_session(res)
     res.cookies << WEBrick::Cookie.new('_rails_lite_app',@cookies.to_json)
   end

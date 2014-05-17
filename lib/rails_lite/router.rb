@@ -15,8 +15,8 @@ class Route
     pattern.match(req.path) && http_method == req.request_method.downcase.to_sym
   end
 
-  # use pattern to pull out route params (save for later?)
-  # instantiate controller and call controller action
+  # uses pattern to pull out route params
+  # instantiates controller and calls controller action
   def run(req, res)
     if matches?(req)
       controller_class.new(req, res).invoke(action_name)
