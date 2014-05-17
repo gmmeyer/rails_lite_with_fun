@@ -8,5 +8,6 @@ gem 'hashie'
 group :development do
   gem 'guard'
   gem 'guard-rspec'
-  gem 'debugger'
+  #gem 'debugger'
+  gem 'byebug'
 end
